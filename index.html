@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Đăng ký cầu thủ</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #eee; }
+    input, button { margin: 10px 0; display: block; }
+    .preview { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .card {
+      width: 120px; text-align: center;
+      background: #fff; padding: 10px;
+      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .card img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; }
+  </style>
+</head>
+<body>
+
+  <h2>Nhập danh sách cầu thủ</h2>
+  <input type="text" id="name" placeholder="Họ và tên" />
+  <input type="date" id="birthday" />
+  <input type="text" id="room" placeholder="Số phòng (CT3.19.xx)" />
+  <input type="file" id="image" accept="image/*" />
+  <button onclick="submitData()">Generate</button>
+
+  <div class="preview" id="preview"></div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwcQDZoB0GfMNTjmM2-RKybwUCMRN9l1HjMhJu4FYNL-x5ooI0EUn6t5VacCmJ2kvc/exec";
+
+function submitData() {
+  const name = document.getElementById("name").value;
+  const birthday = document.getElementById("birthday").value;
+  const room = document.getElementById("room").value;
+  const file = document.getElementById("image").files[0];
+
+  if (!name || !birthday || !room || !file) {
+    alert("Vui lòng điền đầy đủ thông tin!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    const imageBase64 = reader.result;
+
+    // Save to Google Sheet
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ name, birthday, room, imageUrl: imageBase64 }),
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(() => {
+      renderCard({ name, room, image: imageBase64 });
+    })
+    .catch(err => alert("Lỗi lưu dữ liệu!"));
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderCard({ name, room, image }) {
+  const container = document.getElementById("preview");
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `
+    <img src="${image}" />
+    <div><strong>${name}</strong></div>
+    <div>${room}</div>
+  `;
+  container.appendChild(div);
+}
+</script>
+
+</body>
+</html>
